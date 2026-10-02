@@ -1,0 +1,389 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Timber: your disk is a forest</title>
+<meta name="description" content="Timber turns your Mac's storage into a living forest. Find the deadwood, swing the axe, get your gigabytes back. Free, open source, private and local.">
+<meta property="og:title" content="Timber: your disk is a forest">
+<meta property="og:description" content="See what's eating your Mac's storage as a forest. Chop what you don't need. Free, open source, 100% local.">
+<meta property="og:image" content="/assets/og.jpg">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="/assets/favicon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,600;0,9..144,800;0,9..144,900;1,9..144,700&family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --cream:#F5EFE3; --paper:#FBF8F2; --ink:#16241B; --ink2:#3B4A40; --muted:#6E7B71;
+  --forest:#2F7D4F; --forest-d:#1F5A39; --moss:#6DAA55; --sky:#8DC6EE; --sky2:#D9EEF8;
+  --blaze:#FF6B1A; --blaze2:#E8551A; --gold:#F5C542; --keep:#3D8BFF; --bark:#6B4A32; --sawdust:#E9C894;
+  --r:22px;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--cream);color:var(--ink);font:16px/1.6 Geist,system-ui,sans-serif;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+a{color:inherit}
+.wrap{max-width:1180px;margin:0 auto;padding:0 24px}
+h1,h2,h3{font-family:Fraunces,Georgia,serif;letter-spacing:-.02em;margin:0}
+.eyebrow{font:600 12px/1 Geist;letter-spacing:.14em;text-transform:uppercase;color:var(--forest)}
+
+/* nav */
+nav{position:fixed;inset:0 0 auto 0;z-index:50;transition:background .3s,box-shadow .3s}
+nav.solid{background:rgba(245,239,227,.86);backdrop-filter:blur(14px);box-shadow:0 1px 0 rgba(22,36,27,.08)}
+nav .wrap{display:flex;align-items:center;gap:28px;height:68px}
+.logo{display:flex;align-items:center;gap:10px;font:800 22px Fraunces;text-decoration:none}
+.logo img{width:34px;height:34px;border-radius:9px}
+nav .links{display:flex;gap:22px;margin-left:auto;font-weight:500;font-size:15px}
+nav .links a{text-decoration:none;opacity:.75}
+nav .links a:hover{opacity:1}
+.btn{display:inline-flex;align-items:center;gap:10px;border:0;cursor:pointer;text-decoration:none;font:600 15px Geist;border-radius:999px;padding:12px 20px;transition:transform .15s,box-shadow .2s,background .2s}
+.btn:active{transform:scale(.97)}
+.btn-blaze{color:#fff;background:linear-gradient(#FF8A3D,var(--blaze2));box-shadow:0 8px 24px -6px rgba(232,85,26,.55),inset 0 1px 0 rgba(255,255,255,.35)}
+.btn-blaze:hover{box-shadow:0 12px 30px -6px rgba(232,85,26,.7),inset 0 1px 0 rgba(255,255,255,.35);transform:translateY(-1px)}
+.btn-ghost{background:rgba(255,255,255,.7);color:var(--ink);box-shadow:inset 0 0 0 1px rgba(22,36,27,.12)}
+.btn-ghost:hover{background:#fff}
+.btn-lg{padding:16px 28px;font-size:17px}
+.btn svg{width:18px;height:18px}
+
+/* hero */
+.hero{position:relative;height:100vh;min-height:720px;max-height:1000px;overflow:hidden;background:linear-gradient(180deg,#6FB8EE 0%,#BFE1F5 55%,#D9EEF8 100%)}
+#island{position:absolute;inset:0;width:100%;height:100%;display:block;cursor:grab}
+.hero:before{content:"";position:absolute;inset:0;z-index:1;pointer-events:none;background:linear-gradient(90deg,rgba(111,184,238,.55) 0%,rgba(111,184,238,.25) 35%,transparent 55%)}
+.hero-copy{position:relative;z-index:2;padding-top:150px;max-width:600px;pointer-events:none}
+.hero-copy > *{pointer-events:auto}
+.pill{display:inline-flex;align-items:center;gap:8px;padding:7px 14px 7px 8px;border-radius:999px;background:rgba(255,255,255,.65);backdrop-filter:blur(8px);font:500 13px Geist;color:var(--ink2);box-shadow:inset 0 0 0 1px rgba(255,255,255,.7)}
+.pill b{background:var(--forest);color:#fff;border-radius:999px;padding:2px 9px;font-weight:600;font-size:12px}
+.hero h1{font-size:clamp(48px,7.2vw,92px);line-height:.95;font-weight:900;color:#fff;margin:22px 0 14px;text-shadow:0 2px 30px rgba(22,60,40,.25)}
+.hero h1 em{font-style:italic;font-weight:700;color:var(--ink);text-shadow:none;display:block}
+.hero p.sub{font-size:19px;line-height:1.55;color:var(--ink2);max-width:500px;margin:0 0 28px;background:rgba(255,255,255,.0)}
+.ctas{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+.micro{margin-top:16px;font:500 13px Geist;color:var(--ink2);opacity:.85;display:flex;gap:14px;flex-wrap:wrap}
+.micro span{display:inline-flex;align-items:center;gap:6px}
+.hud{position:absolute;z-index:3;right:28px;bottom:28px;display:flex;gap:10px;align-items:stretch}
+.hud .card{background:rgba(22,36,27,.72);backdrop-filter:blur(14px);color:#fff;border-radius:16px;padding:12px 16px;min-width:130px;box-shadow:0 10px 30px -10px rgba(0,0,0,.4),inset 0 0 0 1px rgba(255,107,26,.3)}
+.hud .k{font:700 10px Geist;letter-spacing:.14em;text-transform:uppercase;opacity:.6}
+.hud .v{font:700 24px Geist;font-variant-numeric:tabular-nums}
+.hint{position:absolute;z-index:3;left:50%;bottom:30px;transform:translateX(-50%);background:#fff;color:var(--ink);padding:10px 16px;border-radius:999px;font:600 14px Geist;box-shadow:0 10px 30px -10px rgba(0,0,0,.35);display:flex;gap:8px;align-items:center;animation:bob 2.4s ease-in-out infinite;transition:opacity .4s}
+.hint.gone{opacity:0;pointer-events:none}
+@keyframes bob{50%{transform:translate(-50%,-6px)}}
+.tip{position:absolute;z-index:4;pointer-events:none;background:rgba(22,36,27,.85);color:#fff;padding:6px 11px;border-radius:10px;font:600 13px Geist;white-space:nowrap;transform:translate(-50%,-130%);opacity:0;transition:opacity .15s}
+.tip small{opacity:.65;font-weight:500;margin-left:6px}
+.float{position:absolute;z-index:4;pointer-events:none;font:800 22px Geist;color:#fff;text-shadow:0 2px 10px rgba(0,0,0,.4);transform:translate(-50%,-50%);animation:rise 1.4s ease-out forwards}
+.float.timber{font:900 30px Fraunces;color:var(--sawdust);text-shadow:3px 3px 0 var(--bark)}
+@keyframes rise{to{transform:translate(-50%,-160%);opacity:0}}
+
+/* stats band */
+.band{background:var(--ink);color:var(--cream);padding:30px 0}
+.band .wrap{display:grid;grid-template-columns:repeat(4,1fr);gap:20px}
+.stat b{display:block;font:800 34px Fraunces;color:#fff}
+.stat span{font-size:14px;opacity:.7}
+
+section{padding:110px 0}
+.head{max-width:720px;margin-bottom:56px}
+.head h2{font-size:clamp(36px,4.6vw,58px);line-height:1.02;font-weight:800;margin-top:14px}
+.head p{font-size:19px;color:var(--ink2);margin:18px 0 0}
+
+/* showcase */
+.window{border-radius:16px;overflow:hidden;background:#fff;box-shadow:0 50px 100px -30px rgba(22,36,27,.45),0 0 0 1px rgba(22,36,27,.08);transform:perspective(1800px) rotateX(6deg);transform-origin:50% 0;transition:transform .8s cubic-bezier(.2,.8,.2,1)}
+.window.in{transform:perspective(1800px) rotateX(0)}
+.window img{display:block;width:100%}
+.shots{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-top:24px}
+.shots figure{margin:0;border-radius:14px;overflow:hidden;background:#fff;box-shadow:0 30px 60px -30px rgba(22,36,27,.4),0 0 0 1px rgba(22,36,27,.08)}
+.shots img{display:block;width:100%}
+.shots figcaption{padding:14px 18px;font-size:15px;color:var(--ink2)}
+.shots figcaption b{color:var(--ink)}
+
+/* features */
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+.feat{background:var(--paper);border-radius:var(--r);padding:28px;box-shadow:0 0 0 1px rgba(22,36,27,.07);position:relative;overflow:hidden;transition:transform .25s,box-shadow .25s}
+.feat:hover{transform:translateY(-3px);box-shadow:0 20px 40px -24px rgba(22,36,27,.35),0 0 0 1px rgba(22,36,27,.1)}
+.feat .ico{width:46px;height:46px;border-radius:14px;display:grid;place-items:center;font-size:22px;margin-bottom:18px}
+.feat h3{font-size:24px;font-weight:800;margin-bottom:8px}
+.feat p{margin:0;color:var(--ink2);font-size:15.5px}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:16px}
+.chip{font:500 12.5px "Geist Mono";padding:5px 10px;border-radius:8px;background:#fff;box-shadow:0 0 0 1px rgba(22,36,27,.1)}
+.marks{display:flex;gap:14px;margin-top:16px;font-size:14px;color:var(--ink2)}
+.mark{display:inline-flex;align-items:center;gap:7px}
+.mark i{display:inline-block;width:20px;height:7px;border-radius:9px}
+
+/* claude */
+.claude{background:#14201A;color:#EDE7DA;border-radius:32px;padding:72px 64px;display:grid;grid-template-columns:1fr 1.1fr;gap:56px;align-items:center;position:relative;overflow:hidden}
+.claude:before{content:"";position:absolute;inset:auto -10% -60% auto;width:620px;height:620px;background:radial-gradient(circle,rgba(255,107,26,.22),transparent 60%)}
+.claude h2{color:#fff}
+.claude .head p{color:#B8B2A6}
+.claude .eyebrow{color:var(--blaze)}
+.term{background:#0B120E;border-radius:16px;box-shadow:0 0 0 1px rgba(255,255,255,.08),0 40px 80px -30px #000;font:13px/1.7 "Geist Mono";position:relative;overflow-x:auto}
+.term .bar{display:flex;gap:7px;padding:14px 16px;border-bottom:1px solid rgba(255,255,255,.06)}
+.term .bar i{width:11px;height:11px;border-radius:50%;background:#3a403c}
+.term pre{margin:0;padding:18px 20px;white-space:pre;color:#cfd6d0}
+.term .u{color:#fff}.term .c{color:var(--blaze)}.term .g{color:#7fd38f}.term .d{color:#7b857e}
+.copy{position:absolute;top:9px;right:10px;background:rgba(255,255,255,.08);color:#fff;border:0;border-radius:8px;padding:6px 10px;font:500 12px Geist;cursor:pointer}
+.tools{display:flex;flex-wrap:wrap;gap:8px;margin-top:24px}
+.tools span{font:500 13px "Geist Mono";padding:6px 11px;border-radius:9px;background:rgba(255,255,255,.07);color:#E6DFD1}
+
+/* privacy */
+.privacy{display:grid;grid-template-columns:1.1fr 1fr;gap:60px;align-items:center}
+.promises{display:grid;gap:14px}
+.promise{display:flex;gap:16px;padding:20px 22px;background:var(--paper);border-radius:18px;box-shadow:0 0 0 1px rgba(22,36,27,.07)}
+.promise .n{flex:none;width:36px;height:36px;border-radius:12px;background:var(--forest);color:#fff;display:grid;place-items:center;font-weight:700}
+.promise h4{margin:0 0 3px;font-size:17px}
+.promise p{margin:0;color:var(--ink2);font-size:15px}
+.seal{width:min(100%,400px);aspect-ratio:1;border-radius:50%;background:radial-gradient(circle at 30% 30%,#3A8A55,#1F5A39);display:grid;place-items:center;text-align:center;color:#fff;box-shadow:0 40px 80px -30px rgba(31,90,57,.7);position:relative;max-width:440px;margin:auto}
+.seal:after{content:"";position:absolute;inset:18px;border-radius:50%;border:2px dashed rgba(255,255,255,.35);animation:spin 40s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.seal b{display:block;font:900 clamp(60px,8vw,96px)/1 Fraunces}
+.seal span{display:block;font:600 13px Geist;letter-spacing:.14em;text-transform:uppercase;opacity:.85;max-width:200px;margin:8px auto 0}
+
+/* faq */
+.faq{max-width:820px}
+details{background:var(--paper);border-radius:16px;box-shadow:0 0 0 1px rgba(22,36,27,.07);margin-bottom:10px;padding:0 22px}
+summary{cursor:pointer;list-style:none;padding:20px 0;font:600 17px Geist;display:flex;justify-content:space-between;gap:20px}
+summary::-webkit-details-marker{display:none}
+summary:after{content:"+";font:400 24px Geist;line-height:1;color:var(--forest);transition:transform .2s}
+details[open] summary:after{transform:rotate(45deg)}
+details p{margin:0 0 20px;color:var(--ink2)}
+code{font:14px "Geist Mono";background:rgba(22,36,27,.07);padding:2px 6px;border-radius:6px}
+
+/* final */
+.final{position:relative;text-align:center;padding:130px 0 0;background:linear-gradient(180deg,var(--cream),#CFE7F3 60%,#9FD0EE);overflow:hidden}
+.final h2{font-size:clamp(44px,6vw,80px);font-weight:900;line-height:.98}
+.final p{font-size:19px;color:var(--ink2);margin:16px 0 30px}
+.treeline{display:block;width:100%;height:220px;margin-top:70px}
+footer{background:var(--ink);color:#B8C2BA;padding:36px 0;font-size:14px}
+footer .wrap{display:flex;gap:24px;align-items:center;flex-wrap:wrap}
+footer a{text-decoration:none;color:#fff}
+footer .sp{margin-left:auto}
+
+.reveal{opacity:0;transform:translateY(24px);transition:opacity .8s,transform .8s cubic-bezier(.2,.8,.2,1)}
+.reveal.in{opacity:1;transform:none}
+
+@media (max-width:900px){
+  nav .links{display:none}
+  .hero{height:auto;min-height:0;max-height:none;padding-bottom:360px}
+  .hero-copy{padding-top:110px}
+  .hud{left:16px;right:16px;bottom:16px}
+  .hud .card{flex:1;min-width:0}
+  .hint{display:none}
+  .band .wrap{grid-template-columns:1fr 1fr}
+  .shots,.grid,.claude,.privacy{grid-template-columns:1fr}
+  .claude{padding:44px 24px;border-radius:24px}
+  section{padding:80px 0}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+
+<nav id="nav">
+  <div class="wrap">
+    <a class="logo" href="#"><img src="/assets/icon.png" alt="">Timber</a>
+    <div class="links">
+      <a href="#how">How it works</a>
+      <a href="#features">Features</a>
+      <a href="#claude">Claude</a>
+      <a href="#privacy">Privacy</a>
+      <a href="https://github.com/acstener/timber" data-track="github_clicked">GitHub</a>
+    </div>
+    <a class="btn btn-blaze" href="https://github.com/acstener/timber/releases/latest/download/Timber.dmg" data-track="download_clicked" data-where="nav">Download</a>
+  </div>
+</nav>
+
+<header class="hero">
+  <canvas id="island" aria-label="An interactive 3D forest. Click a tree to chop it."></canvas>
+  <div class="wrap">
+    <div class="hero-copy">
+      <span class="pill"><b>Free</b> Open source · for macOS</span>
+      <h1>Your disk is a forest.<em>Chop what you don't need.</em></h1>
+      <p class="sub">Timber turns your Mac's storage into a living forest. Every folder is a tree, sized by the space it takes. Find the deadwood, swing the axe, get your gigabytes back.</p>
+      <div class="ctas">
+        <a class="btn btn-blaze btn-lg" href="https://github.com/acstener/timber/releases/latest/download/Timber.dmg" data-track="download_clicked" data-where="hero">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M16.37 12.6c-.02-2.3 1.88-3.4 1.96-3.46-1.07-1.56-2.73-1.78-3.32-1.8-1.41-.14-2.76.83-3.48.83-.72 0-1.82-.81-3-.79-1.54.02-2.97.9-3.76 2.28-1.61 2.79-.41 6.91 1.15 9.17.77 1.1 1.68 2.34 2.87 2.3 1.15-.05 1.59-.74 2.98-.74 1.39 0 1.78.74 3 .72 1.24-.02 2.03-1.12 2.78-2.23.88-1.28 1.24-2.52 1.26-2.59-.03-.01-2.42-.93-2.44-3.69zM14.1 5.86c.63-.77 1.06-1.83.94-2.89-.91.04-2.02.61-2.67 1.37-.58.67-1.1 1.76-.96 2.8 1.02.08 2.06-.52 2.69-1.28z"/></svg>
+          Download for Mac
+        </a>
+        <a class="btn btn-ghost btn-lg" href="https://github.com/acstener/timber" data-track="github_clicked">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 .5a11.5 11.5 0 0 0-3.64 22.41c.58.1.79-.25.79-.56v-2c-3.2.7-3.88-1.37-3.88-1.37-.52-1.33-1.28-1.68-1.28-1.68-1.05-.72.08-.7.08-.7 1.16.08 1.77 1.19 1.77 1.19 1.03 1.77 2.7 1.26 3.36.96.1-.75.4-1.26.73-1.55-2.55-.29-5.24-1.28-5.24-5.69 0-1.26.45-2.29 1.19-3.09-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.17 1.18a11 11 0 0 1 5.77 0c2.2-1.49 3.17-1.18 3.17-1.18.63 1.59.23 2.76.11 3.05.74.8 1.19 1.83 1.19 3.09 0 4.42-2.69 5.39-5.26 5.68.41.36.78 1.06.78 2.14v3.17c0 .31.21.67.8.56A11.5 11.5 0 0 0 12 .5z"/></svg>
+          Star on GitHub
+        </a>
+      </div>
+      <div class="micro"><span>✓ Notarized by Apple</span><span>macOS 14+</span><span>3.7 MB</span><span>MIT licensed</span></div>
+    </div>
+  </div>
+  <div class="hint" id="hint">🪓 Click a tree to chop it</div>
+  <div class="hud">
+    <div class="card"><div class="k">Surveyed</div><div class="v" id="hud-files">0</div></div>
+    <div class="card"><div class="k">Reclaimed</div><div class="v" id="hud-reclaimed">0 GB</div></div>
+  </div>
+  <div class="tip" id="tip"></div>
+</header>
+
+<div class="band">
+  <div class="wrap">
+    <div class="stat"><b>3.4M</b><span>files surveyed in 23 seconds</span></div>
+    <div class="stat"><b>57.8 GB</b><span>of deadwood found on our own Mac</span></div>
+    <div class="stat"><b>0 bytes</b><span>of your files ever uploaded</span></div>
+    <div class="stat"><b>⌘Z</b><span>undo every chop</span></div>
+  </div>
+</div>
+
+<section id="how">
+  <div class="wrap">
+    <div class="head reveal">
+      <div class="eyebrow">How it works</div>
+      <h2>Survey. Spot the deadwood. Timber!</h2>
+      <p>Point Timber at your home folder and it measures every file in seconds. Folders grow into trees, so the giants are obvious. Caches and build junk show up as dead trees. Walk into any folder, inspect any tree, and chop it with a satisfying thunk.</p>
+    </div>
+    <div class="window reveal" id="win"><img src="/assets/forest.jpg" alt="Timber's forest view: trees sized by folder, a deadwood list on the left, details on the right" loading="lazy"></div>
+    <div class="shots">
+      <figure class="reveal"><img src="/assets/chopfall.jpg" alt="A tree falling with a TIMBER! label" loading="lazy"><figcaption><b>Every chop is a little celebration.</b> Three axe swings, wood chips, a crash. It all goes to the Trash, never deleted.</figcaption></figure>
+      <figure class="reveal"><img src="/assets/welcome.jpg" alt="Timber's welcome screen with disk usage" loading="lazy"><figcaption><b>Know where you stand.</b> How full your disk is, then one click to survey your home folder, any folder, or the whole drive.</figcaption></figure>
+    </div>
+  </div>
+</section>
+
+<section id="features" style="padding-top:20px">
+  <div class="wrap">
+    <div class="head reveal">
+      <div class="eyebrow">Features</div>
+      <h2>A field guide to your storage.</h2>
+    </div>
+    <div class="grid">
+      <div class="feat reveal">
+        <div class="ico" style="background:#E3F0E2">🌲</div>
+        <h3>The forest view</h3>
+        <p>Tree height tracks the square root of size, so canopy area tracks bytes. Folders grow as pines, media as blossoms, installers as birches, apps as maples.</p>
+      </div>
+      <div class="feat reveal">
+        <div class="ico" style="background:#F3E6D8">🍂</div>
+        <h3>Deadwood finder</h3>
+        <p>Spots the stuff that grows back on its own and rates every find: safe, probably safe, or look first.</p>
+        <div class="chips"><span class="chip">DerivedData</span><span class="chip">node_modules</span><span class="chip">.build</span><span class="chip">.next</span><span class="chip">pnpm store</span><span class="chip">app caches</span><span class="chip">simulators</span><span class="chip">.dmg</span></div>
+      </div>
+      <div class="feat reveal">
+        <div class="ico" style="background:#E2ECFB">🔭</div>
+        <h3>The Ranger</h3>
+        <p>Optional AI second opinion from TypeSafe's Jev model. It paints trunks like a real forester, and only ever sees names, sizes and dates.</p>
+        <div class="marks"><span class="mark"><i style="background:var(--blaze);transform:rotate(-20deg)"></i>Fell</span><span class="mark"><i style="background:var(--gold)"></i>Look first</span><span class="mark"><i style="background:var(--keep)"></i>Keep</span></div>
+      </div>
+      <div class="feat reveal">
+        <div class="ico" style="background:#EDE4F6">🌿</div>
+        <h3>Git-aware</h3>
+        <p>Checks every repo and worktree for uncommitted changes and unpushed commits before you swing. Chopped worktrees are detached cleanly so their branch frees up.</p>
+      </div>
+      <div class="feat reveal">
+        <div class="ico" style="background:#FDEBD9">↩︎</div>
+        <h3>Nothing is deleted</h3>
+        <p>Chops go to the Trash and into a log. ⌘Z plants them back. System folders, keys, settings and your Photos library are off limits.</p>
+      </div>
+      <div class="feat reveal">
+        <div class="ico" style="background:#DDF0F8">🏝️</div>
+        <h3>A 3D survey</h3>
+        <p>Scanning isn't a progress bar. It's a low-poly island under a lidar sweep, sprouting a tree for every folder it measures.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="claude" style="padding-top:20px">
+  <div class="wrap">
+    <div class="claude reveal">
+      <div class="head" style="margin:0">
+        <div class="eyebrow">Built-in MCP server</div>
+        <h2>Or let Claude do the chopping.</h2>
+        <p>Timber ships an MCP server inside the app. Hook it up to Claude Code or Claude Desktop and say “find me 20 GB”. Claude surveys, asks the Ranger, shows you a plan, and only chops what you approve.</p>
+        <div class="tools"><span>disk_overview</span><span>survey</span><span>find_deadwood</span><span>ranger</span><span>chop</span><span>restore</span></div>
+      </div>
+      <div class="term">
+        <div class="bar"><i></i><i></i><i></i></div>
+        <button class="copy" data-copy="claude mcp add timber -s user -- /Applications/Timber.app/Contents/Helpers/timber-mcp">Copy</button>
+<pre><span class="d">$</span> <span class="u">claude mcp add timber -s user -- \
+  /Applications/Timber.app/Contents/Helpers/timber-mcp</span>
+
+<span class="c">›</span> <span class="u">Use Timber to find me 20 GB</span>
+
+<span class="d">⏺ timber · find_deadwood</span>
+  Found 57.8 GB that grows back on its own:
+  <span class="g">✓</span> Xcode DerivedData      9.4 GB  safe
+  <span class="g">✓</span> .build · cli           5.0 GB  safe
+  <span class="g">✓</span> pnpm store             3.3 GB  safe
+  <span class="g">✓</span> node_modules · site    1.7 GB  4 months old
+  ⚠ worktree · feature-x  0.9 GB  2 unsaved changes
+
+  That's 19.4 GB safe to chop now. Go ahead?</pre>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="privacy">
+  <div class="wrap privacy">
+    <div>
+      <div class="head reveal" style="margin-bottom:32px">
+        <div class="eyebrow">Private &amp; local</div>
+        <h2>Your files never leave your Mac.</h2>
+        <p>Timber is a native app that reads your disk and keeps what it learns to itself. No account, no cloud, no upload. The code is open, so you don't have to take our word for it.</p>
+      </div>
+      <div class="promises">
+        <div class="promise reveal"><div class="n">1</div><div><h4>100% on-device scanning</h4><p>Measuring, deadwood rules and git checks all run locally.</p></div></div>
+        <div class="promise reveal"><div class="n">2</div><div><h4>The Ranger is opt-in</h4><p>Only if you add a key, and only names, sizes and dates. Never file contents.</p></div></div>
+        <div class="promise reveal"><div class="n">3</div><div><h4>Anonymous counts, with an off switch</h4><p>Things like “a 1–10 GB cache was chopped”. Never file names or paths. Turn it off in Settings.</p></div></div>
+        <div class="promise reveal"><div class="n">4</div><div><h4>Open source, MIT</h4><p>Read every line on GitHub, build it yourself, fork it.</p></div></div>
+      </div>
+    </div>
+    <div class="seal reveal"><div><b>0 B</b><span>of your files uploaded</span></div></div>
+  </div>
+</section>
+
+<section id="faq" style="padding-top:20px">
+  <div class="wrap faq">
+    <div class="head reveal" style="margin-bottom:30px"><div class="eyebrow">FAQ</div><h2>Questions from the trail.</h2></div>
+    <details class="reveal"><summary>Does Timber delete my files?</summary><p>Never. Chopping moves things to the Trash and logs it, and ⌘Z puts them back. Space comes back when you empty the Trash. Timber can do that for you, but only after you confirm.</p></details>
+    <details class="reveal"><summary>Why does it ask for Full Disk Access?</summary><p>It doesn't need it, but macOS hides some folders (Mail, Safari, other apps' containers) from apps without it. Without it, Timber simply shows those as locked. Grant it in System Settings → Privacy &amp; Security if you want the full picture.</p></details>
+    <details class="reveal"><summary>Is it safe to chop node_modules, DerivedData and caches?</summary><p>Yes, they're rebuilt or re-downloaded when needed. Timber marks those as “safe”. Anything that might be personal is marked “look first”, and some things (your home folder, Library, Documents roots, keys, Photos libraries) can't be chopped at all.</p></details>
+    <details class="reveal"><summary>What about git repos and worktrees?</summary><p>Timber checks for uncommitted changes and commits that exist nowhere else, and warns you before chopping. Bulk “clear deadwood” skips them entirely. Chopped worktrees are detached from git cleanly, and undo restores both.</p></details>
+    <details class="reveal"><summary>What's the Ranger / Jev?</summary><p>An optional second opinion powered by TypeSafe's Jev, a fast model that returns typed judgments instead of chat. Add your own TypeSafe key in Settings. Timber applies its own safety policy on top of Jev's answers.</p></details>
+    <details class="reveal"><summary>Which Macs does it run on?</summary><p>Any Mac on macOS 14 Sonoma or later, Apple silicon or Intel.</p></details>
+  </div>
+</section>
+
+<section class="final">
+  <div class="wrap">
+    <h2 class="reveal">Clear a path.</h2>
+    <p class="reveal">Free forever. Open source. Takes ten seconds to install.</p>
+    <a class="btn btn-blaze btn-lg reveal" href="https://github.com/acstener/timber/releases/latest/download/Timber.dmg" data-track="download_clicked" data-where="footer">Download Timber for Mac</a>
+  </div>
+  <svg class="treeline" viewBox="0 0 1440 220" preserveAspectRatio="none" aria-hidden="true">
+    <path d="M0 150 Q360 110 720 140 T1440 130 V220 H0Z" fill="#6DAA55"/>
+    <g fill="#2F7D4F" id="pines"></g>
+    <path d="M0 190 Q400 165 760 185 T1440 178 V220 H0Z" fill="#3F7A3A"/>
+  </svg>
+</section>
+
+<footer>
+  <div class="wrap">
+    <a class="logo" href="#" style="font-size:18px"><img src="/assets/icon.png" alt="" style="width:26px;height:26px">Timber</a>
+    <span>Made by <a href="https://github.com/acstener">Alex Christou</a></span>
+    <span class="sp"><a href="https://github.com/acstener/timber" data-track="github_clicked">GitHub</a> · <a href="https://github.com/acstener/timber/blob/main/LICENSE">MIT License</a> · <a href="https://github.com/acstener/timber/blob/main/PRIVACY.md">Privacy</a></span>
+  </div>
+</footer>
+
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js"}}</script>
+<script type="module" src="/hero.js"></script>
+<script>
+// Footer tree line
+(()=>{const g=document.getElementById('pines');let s=7;const r=()=>(s=(s*16807)%2147483647)/2147483647;let h='';for(let i=0;i<46;i++){const x=i*32+r()*20,b=150+r()*14,t=40+r()*55,w=t*.45;h+=`<path d="M${x} ${b-t}L${x+w/2} ${b}H${x-w/2}Z" opacity="${.75+r()*.25}"/>`}g.innerHTML=h})();
+// Nav, reveals, copy
+const nav=document.getElementById('nav');addEventListener('scroll',()=>nav.classList.toggle('solid',scrollY>40),{passive:true});
+const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target)}}),{threshold:.15});
+document.querySelectorAll('.reveal,.window').forEach(el=>io.observe(el));
+document.querySelectorAll('[data-copy]').forEach(b=>b.onclick=()=>{navigator.clipboard.writeText(b.dataset.copy);b.textContent='Copied';setTimeout(()=>b.textContent='Copy',1500)});
+</script>
+<!-- PostHog: anonymous pageviews + download clicks. No cookies, no storage, no session replay. -->
+<script>
+!function(t,e){var o,n,p,r;e.__SV||(window.posthog=e,e._i=[],e.init=function(i,s,a){function g(t,e){var o=e.split(".");2==o.length&&(t=t[o[0]],e=o[1]),t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}}(p=t.createElement("script")).type="text/javascript",p.crossOrigin="anonymous",p.async=!0,p.src=s.api_host.replace(".i.posthog.com","-assets.i.posthog.com")+"/static/array.js",(r=t.getElementsByTagName("script")[0]).parentNode.insertBefore(p,r);var u=e;for(void 0!==a?u=e[a]=[]:a="posthog",u.people=u.people||[],u.toString=function(t){var e="posthog";return"posthog"!==a&&(e+="."+a),t||(e+=" (stub)"),e},u.people.toString=function(){return u.toString(1)+".people (stub)"},o="init capture register register_once unregister opt_out_capturing has_opted_out_capturing opt_in_capturing reset".split(" "),n=0;n<o.length;n++)g(u,o[n]);e._i.push([i,s,a])},e.__SV=1)}(document,window.posthog||[]);
+posthog.init('phc_DGTUKScCXfFehGH6epBvcA8CrQX7y5AhTC2sDkfLAbH',{api_host:'https://us.i.posthog.com',persistence:'memory',autocapture:false,disable_session_recording:true,capture_pageleave:false,person_profiles:'never'});
+posthog.register({app:'timber-site'});
+document.addEventListener('click',e=>{const a=e.target.closest('[data-track]');if(a)posthog.capture(a.dataset.track,{where:a.dataset.where||null})});
+</script>
+</body>
+</html>
