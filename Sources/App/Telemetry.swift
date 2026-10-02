@@ -4,7 +4,7 @@ import Foundation
 /// names, Jev verdict details or anything about what's on your disk — only counts, size
 /// buckets and which features were used. Off switch: Settings → General.
 enum Telemetry {
-    private static let host = URL(string: "https://us.i.posthog.com/i/v0/e/")!
+    private static let host = URL(string: "https://eu.i.posthog.com/i/v0/e/")!
     /// PostHog project key. It's a public, write-only key designed to ship inside clients.
     private static let apiKey = "phc_DGTUKScCXfFehGH6epBvcA8CrQX7y5AhTC2sDkfLAbH"
 
