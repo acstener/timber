@@ -134,6 +134,13 @@ public enum ChopLog {
     private static let decoder: JSONDecoder = { let d = JSONDecoder(); d.dateDecodingStrategy = .iso8601; return d }()
 
     static func append(_ rec: ChopRecord) {
+        // The Trash reuses a name once the old item is hauled away (~/.Trash/node_modules again).
+        // An older record still pointing there is stale; left in, restore would put today's chop in its old home.
+        let all = raw()
+        if !rec.trashed.isEmpty, all.contains(where: { $0.trashed == rec.trashed }) {
+            for s in all where s.trashed == rec.trashed { if let stored = s.worktreeRecord { try? FileManager.default.removeItem(atPath: stored) } }
+            write(all.filter { $0.trashed != rec.trashed })
+        }
         guard var data = try? encoder.encode(rec) else { return }
         data.append(0x0A)
         if let h = try? FileHandle(forWritingTo: url) {
@@ -144,26 +151,35 @@ public enum ChopLog {
     }
 
     static func markRestored(_ rec: ChopRecord) {
-        var all = entries()
+        var all = raw()
         all.removeAll { $0.original == rec.original && $0.trashed == rec.trashed }
-        let lines = all.compactMap { try? encoder.encode($0) }.map { String(decoding: $0, as: UTF8.self) }
-        try? (lines.joined(separator: "\n") + (lines.isEmpty ? "" : "\n")).write(to: url, atomically: true, encoding: .utf8)
+        write(all)
     }
 
     /// After the Trash is emptied: forget chops that are gone for good, and their set-aside worktree records.
     public static func forgetHauled() {
         let fm = FileManager.default
-        let all = entries()
-        let gone = all.filter { $0.trashed.isEmpty || !fm.fileExists(atPath: $0.trashed) }
-        for g in gone { if let stored = g.worktreeRecord { try? fm.removeItem(atPath: stored) } }
-        let keep = all.filter { !($0.trashed.isEmpty || !fm.fileExists(atPath: $0.trashed)) }.reversed()
-        let lines = keep.compactMap { try? encoder.encode($0) }.map { String(decoding: $0, as: UTF8.self) }
-        try? (lines.joined(separator: "\n") + (lines.isEmpty ? "" : "\n")).write(to: url, atomically: true, encoding: .utf8)
+        let keep = entries().filter { !$0.trashed.isEmpty && fm.fileExists(atPath: $0.trashed) }
+        let keptRecords = Set(keep.compactMap(\.worktreeRecord))
+        for g in raw() { if let stored = g.worktreeRecord, !keptRecords.contains(stored) { try? fm.removeItem(atPath: stored) } }
+        write(keep)
     }
 
-    /// Chops still sitting in the Trash, newest first.
+    /// Chops still sitting in the Trash, newest first. Only the newest record for each Trash path counts.
     public static func entries() -> [ChopRecord] {
+        var seen = Set<String>()
+        return raw().filter { $0.trashed.isEmpty || seen.insert($0.trashed).inserted }
+    }
+
+    /// Every logged record, newest first.
+    private static func raw() -> [ChopRecord] {
         guard let text = try? String(contentsOf: url, encoding: .utf8) else { return [] }
         return text.split(separator: "\n").compactMap { try? decoder.decode(ChopRecord.self, from: Data($0.utf8)) }.reversed()
+    }
+
+    /// Rewrites the log from records given newest first (the file keeps oldest first).
+    private static func write(_ newestFirst: [ChopRecord]) {
+        let lines = newestFirst.reversed().compactMap { try? encoder.encode($0) }.map { String(decoding: $0, as: UTF8.self) }
+        try? (lines.joined(separator: "\n") + (lines.isEmpty ? "" : "\n")).write(to: url, atomically: true, encoding: .utf8)
     }
 }
