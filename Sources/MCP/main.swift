@@ -338,7 +338,7 @@ func callTool(_ name: String, _ args: [String: Any]) async throws -> Any {
     case "engine_check":
         let limit = min(30, max(1, args["limit"] as? Int ?? 8))
         let t = Engine.read()
-        let codes = Engine.diagnose(t, startup: Engine.startupItems())
+        let codes = Engine.diagnose(t, startup: Engine.startupItems(), hosts: Engine.hostGroupIDs())
         let topMem = t.apps.sorted { $0.memory > $1.memory }.prefix(limit)
         let topCPU = t.apps.sorted { $0.cpu > $1.cpu }.prefix(limit)
         var out: [String: Any] = [

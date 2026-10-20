@@ -328,8 +328,10 @@ public enum Engine {
         "Google Chrome", "Arc", "Brave Browser", "Microsoft Edge", "Firefox", "Opera", "Vivaldi", "Dia", "Comet", "Zen", "Safari & WebKit tabs",
     ]
 
-    public static func diagnose(_ t: EngineReading, startup: [LaunchItem]) -> [TroubleCode] {
+    /// `hosts`: group IDs hosting this session (see hostGroupIDs); they never get a quit suggestion.
+    public static func diagnose(_ t: EngineReading, startup: [LaunchItem], hosts: Set<String> = []) -> [TroubleCode] {
         var out: [TroubleCode] = []
+        func quitFix(_ a: AppGroup) -> String { hosts.contains(a.id) ? "This app is running Claude; finish or close heavy sessions instead of quitting it" : "quit_apps \(a.name)" }
         let userApps = t.userApps.filter { $0.name != "timber-mcp" && $0.name != "Timber" }
         var flagged = Set<String>()
 
@@ -340,7 +342,7 @@ public enum Engine {
                 code: "P030\(i + 1)", system: "Cylinder \(i + 1) misfire", severity: a.cpu >= 100 ? .critical : a.cpu >= 50 ? .warning : .advisory,
                 title: "\(a.name) is burning \(Int(a.cpu))% CPU",
                 detail: "Across \(a.count == 1 ? "a single process" : "\(a.count) processes"): \(String(format: "%.1f", a.cpu / 100)) of \(t.cores) cores. If it isn't in use, quitting it cools things down fast.",
-                fix: "quit_apps \(a.name)"))
+                fix: quitFix(a)))
         }
         let load = t.loadAvg[0]
         if load > Double(t.cores) * 2 {
@@ -380,7 +382,7 @@ public enum Engine {
             out.append(TroubleCode(code: "P017\(4 + i)", system: "Payload", severity: a.memory > 5_000_000_000 ? .warning : .advisory,
                                    title: "\(a.name) is hauling \(Fmt.gb(a.memory))",
                                    detail: "That's \(Int(Double(a.memory) / Double(t.memTotal) * 100))% of RAM in one app. If it's idle, quitting hands that memory back.",
-                                   fix: "quit_apps \(a.name)"))
+                                   fix: quitFix(a)))
         }
         for a in t.apps where browsers.contains(a.name) && (a.count >= 25 || a.memory > 3_000_000_000) {
             out.append(TroubleCode(code: "P0500", system: "Passengers", severity: a.memory > 6_000_000_000 ? .warning : .advisory,
