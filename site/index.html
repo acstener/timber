@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Timber: your disk is a forest</title>
-<meta name="description" content="Timber turns your Mac's storage into a living forest. Find the deadwood, swing the axe, get your gigabytes back. Free, open source, private and local.">
+<meta name="description" content="Timber turns your Mac's storage into a living forest. Find the deadwood, swing the axe, get your gigabytes back. Built-in Claude MCP for disk, RAM and speed. Free, open source, private and local.">
 <meta property="og:title" content="Timber: your disk is a forest">
 <meta property="og:description" content="See what's eating your Mac's storage as a forest. Chop what you don't need. Free, open source, 100% local.">
 <meta property="og:image" content="/assets/og.jpg">
@@ -122,6 +122,29 @@ section{padding:110px 0}
 .tools{display:flex;flex-wrap:wrap;gap:8px;margin-top:24px}
 .tools span{font:500 13px "Geist Mono";padding:6px 11px;border-radius:9px;background:rgba(255,255,255,.07);color:#E6DFD1}
 
+/* claude: install + use cases */
+.steps{list-style:none;padding:0;margin:28px 0 0;display:grid;gap:12px;counter-reset:s}
+.steps li{display:flex;gap:14px;align-items:flex-start;color:#D9D2C4;font-size:15.5px}
+.steps li:before{counter-increment:s;content:counter(s);flex:none;width:28px;height:28px;border-radius:9px;background:var(--blaze);color:#fff;display:grid;place-items:center;font:700 14px Geist}
+.steps b{color:#fff}
+.toolset{margin-top:22px}
+.toolset .lbl{font:600 11px Geist;letter-spacing:.14em;text-transform:uppercase;color:#8E978F;margin:14px 0 8px}
+.toolset .tools{margin-top:0}
+.tools span.e{background:rgba(255,107,26,.16);color:#FFC59E}
+.termwrap{min-width:0}
+.tabs{display:flex;gap:6px;margin-bottom:10px}
+.tabs button{border:0;cursor:pointer;font:600 13px Geist;padding:8px 14px;border-radius:999px;background:rgba(255,255,255,.07);color:#B8B2A6}
+.tabs button[aria-selected=true]{background:#fff;color:var(--ink)}
+.term + .term{margin-top:14px}
+.term .r{color:#ff8f8f}.term .y{color:var(--gold)}
+.uses{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:22px}
+.use{background:var(--paper);border-radius:var(--r);padding:26px;box-shadow:0 0 0 1px rgba(22,36,27,.07)}
+.use q{display:block;font:italic 700 22px/1.2 Fraunces;quotes:"\201C" "\201D";margin-bottom:12px}
+.use p{margin:0;color:var(--ink2);font-size:15px}
+.use .chips{margin-top:14px}
+.guard{margin-top:18px;display:flex;flex-wrap:wrap;gap:10px 22px;font-size:14px;color:var(--ink2)}
+.guard span:before{content:"✓ ";color:var(--forest);font-weight:700}
+
 /* privacy */
 .privacy{display:grid;grid-template-columns:1.1fr 1fr;gap:60px;align-items:center}
 .promises{display:grid;gap:14px}
@@ -143,6 +166,7 @@ summary::-webkit-details-marker{display:none}
 summary:after{content:"+";font:400 24px Geist;line-height:1;color:var(--forest);transition:transform .2s}
 details[open] summary:after{transform:rotate(45deg)}
 details p{margin:0 0 20px;color:var(--ink2)}
+details p code{overflow-wrap:anywhere}
 code{font:14px "Geist Mono";background:rgba(22,36,27,.07);padding:2px 6px;border-radius:6px}
 
 /* final */
@@ -166,8 +190,11 @@ footer .sp{margin-left:auto}
   .hud .card{flex:1;min-width:0}
   .hint{display:none}
   .band .wrap{grid-template-columns:1fr 1fr}
-  .shots,.grid,.claude,.privacy{grid-template-columns:1fr}
+  .shots,.grid,.claude,.privacy,.uses{grid-template-columns:1fr}
   .claude{padding:44px 24px;border-radius:24px}
+  .claude{padding:40px 18px}
+  .term{font-size:11.5px}
+  .term pre{padding:16px 14px}
   section{padding:80px 0}
 }
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
@@ -206,7 +233,7 @@ footer .sp{margin-left:auto}
           Star on GitHub
         </a>
       </div>
-      <div class="micro"><span>✓ Notarized by Apple</span><span>macOS 14+</span><span>3.7 MB</span><span>MIT licensed</span></div>
+      <div class="micro"><span>✓ Notarized by Apple</span><span>macOS 14+</span><span>3.9 MB</span><span>MIT licensed</span></div>
     </div>
   </div>
   <div class="hint" id="hint">🪓 Click a tree to chop it</div>
@@ -288,30 +315,83 @@ footer .sp{margin-left:auto}
   <div class="wrap">
     <div class="claude reveal">
       <div class="head" style="margin:0">
-        <div class="eyebrow">Built-in MCP server</div>
-        <h2>Or let Claude do the chopping.</h2>
-        <p>Timber ships an MCP server inside the app. Hook it up to Claude Code or Claude Desktop and say “find me 20 GB”. Claude surveys, asks the Ranger, shows you a plan, and only chops what you approve.</p>
-        <div class="tools"><span>disk_overview</span><span>survey</span><span>find_deadwood</span><span>ranger</span><span>chop</span><span>restore</span></div>
+        <div class="eyebrow">Claude MCP, built in</div>
+        <h2>Hand Claude the axe. And the wrench.</h2>
+        <p>Timber ships its own MCP server inside the app. Plug it into Claude once and every session can survey your disk, fell the deadwood, read your RAM and tell you exactly why your Mac feels like it's wading through mud. Claude proposes. You say yes. Then it swings.</p>
+        <ol class="steps">
+          <li><span><b>Download Timber</b> and drag it into Applications.</span></li>
+          <li><span><b>Plug it into Claude</b> with one command (Claude Code) or three lines of config (Claude Desktop).</span></li>
+          <li><span><b>Ask.</b> “Find me 20 GB.” “Why is my Mac so slow?” “Tune it up.”</span></li>
+        </ol>
+        <div class="toolset">
+          <div class="lbl">Disk</div>
+          <div class="tools"><span>disk_overview</span><span>survey</span><span>find_deadwood</span><span>ranger</span><span>chop</span><span>restore</span></div>
+          <div class="lbl">Engine bay · RAM &amp; speed</div>
+          <div class="tools"><span class="e">engine_check</span><span class="e">startup_items</span><span class="e">quit_apps</span><span class="e">tune_up</span></div>
+        </div>
       </div>
-      <div class="term">
-        <div class="bar"><i></i><i></i><i></i></div>
-        <button class="copy" data-copy="claude mcp add timber -s user -- /Applications/Timber.app/Contents/Helpers/timber-mcp">Copy</button>
+      <div class="termwrap">
+        <div class="tabs" role="tablist">
+          <button role="tab" aria-selected="true" data-tab="code">Claude Code</button>
+          <button role="tab" aria-selected="false" data-tab="desktop">Claude Desktop</button>
+        </div>
+        <div class="term" data-panel="code">
+          <div class="bar"><i></i><i></i><i></i></div>
+          <button class="copy" data-copy="claude mcp add timber -s user -- /Applications/Timber.app/Contents/Helpers/timber-mcp">Copy</button>
 <pre><span class="d">$</span> <span class="u">claude mcp add timber -s user -- \
   /Applications/Timber.app/Contents/Helpers/timber-mcp</span>
+<span class="g">✓</span> <span class="d">timber added · every project</span></pre>
+        </div>
+        <div class="term" data-panel="desktop" hidden>
+          <div class="bar"><i></i><i></i><i></i></div>
+          <button class="copy" data-copy='{"mcpServers":{"timber":{"command":"/Applications/Timber.app/Contents/Helpers/timber-mcp"}}}'>Copy</button>
+<pre><span class="d">// Settings → Developer → Edit Config
+// claude_desktop_config.json</span>
+{
+  <span class="c">"mcpServers"</span>: {
+    <span class="c">"timber"</span>: {
+      <span class="c">"command"</span>:
+        <span class="g">"/Applications/Timber.app/Contents/Helpers/timber-mcp"</span>
+    }
+  }
+}
+<span class="d">// then restart Claude</span></pre>
+        </div>
+        <div class="term">
+          <div class="bar"><i></i><i></i><i></i></div>
+<pre><span class="c">›</span> <span class="u">Why is my Mac so slow?</span>
 
-<span class="c">›</span> <span class="u">Use Timber to find me 20 GB</span>
+<span class="d">⏺ timber · engine_check</span>
+  16 GB RAM · 10.8 used · 5.3 swapped
+  <span class="r">P0087</span>  Fuel low: 2.0 GB free
+  <span class="y">P0301</span>  Xcode burning 99% CPU
+  <span class="y">P0299</span>  5.3 GB of RAM spilled to SSD
+  <span class="y">P0340</span>  24 apps fire at startup
 
-<span class="d">⏺ timber · find_deadwood</span>
-  Found 57.8 GB that grows back on its own:
-  <span class="g">✓</span> Xcode DerivedData      9.4 GB  safe
-  <span class="g">✓</span> .build · cli           5.0 GB  safe
-  <span class="g">✓</span> pnpm store             3.3 GB  safe
-  <span class="g">✓</span> node_modules · site    1.7 GB  4 months old
-  ⚠ worktree · feature-x  0.9 GB  2 unsaved changes
-
-  That's 19.4 GB safe to chop now. Go ahead?</pre>
+  Disk first, it's nearly full. Want me
+  to find the deadwood and quit Xcode?</pre>
+        </div>
       </div>
     </div>
+
+    <div class="uses">
+      <div class="use reveal">
+        <q>Find me 20 GB.</q>
+        <p>Claude surveys your drive, rates every cache, build folder and stale node_modules, checks git for unsaved work, and shows you the plan before a single tree falls. Everything lands in the Trash with an undo.</p>
+        <div class="chips"><span class="chip">find_deadwood</span><span class="chip">chop</span><span class="chip">restore</span></div>
+      </div>
+      <div class="use reveal">
+        <q>Why is my Mac so slow?</q>
+        <p>A full engine diagnostic in a second: RAM, memory pressure, swap, CPU, thermals, uptime, battery. Forty Chrome helpers roll up into one “Google Chrome”. Every problem comes back as a trouble code with the fix attached.</p>
+        <div class="chips"><span class="chip">engine_check</span><span class="chip">startup_items</span></div>
+      </div>
+      <div class="use reveal">
+        <q>Tune it up.</q>
+        <p>Claude runs the whole routine: finds the idle memory hogs, flags the junk that launches at login, quits only what you approve, then re-checks so you see before and after.</p>
+        <div class="chips"><span class="chip">tune_up</span><span class="chip">quit_apps</span></div>
+      </div>
+    </div>
+    <div class="guard reveal"><span>Apps quit gracefully and can ask to save</span><span>Never touches macOS processes</span><span>Won't quit the app Claude is running in</span><span>Refuses to chop unsaved git work</span></div>
   </div>
 </section>
 
@@ -342,6 +422,8 @@ footer .sp{margin-left:auto}
     <details class="reveal"><summary>Is it safe to chop node_modules, DerivedData and caches?</summary><p>Yes, they're rebuilt or re-downloaded when needed. Timber marks those as “safe”. Anything that might be personal is marked “look first”, and some things (your home folder, Library, Documents roots, keys, Photos libraries) can't be chopped at all.</p></details>
     <details class="reveal"><summary>What about git repos and worktrees?</summary><p>Timber checks for uncommitted changes and commits that exist nowhere else, and warns you before chopping. Bulk “clear deadwood” skips them entirely. Chopped worktrees are detached from git cleanly, and undo restores both.</p></details>
     <details class="reveal"><summary>What's the Ranger / Jev?</summary><p>An optional second opinion powered by TypeSafe's Jev, a fast model that returns typed judgments instead of chat. Add your own TypeSafe key in Settings. Timber applies its own safety policy on top of Jev's answers.</p></details>
+    <details class="reveal"><summary>How do I connect Timber to Claude?</summary><p>Install Timber in Applications, then in Claude Code run <code>claude mcp add timber -s user -- /Applications/Timber.app/Contents/Helpers/timber-mcp</code>. For Claude Desktop, add a <code>timber</code> entry pointing at that same path under <code>mcpServers</code> in <code>claude_desktop_config.json</code> and restart. Any MCP client works the same way.</p></details>
+    <details class="reveal"><summary>Can Claude quit my apps or chop files without asking?</summary><p>Claude is told to ask first, and Timber backs that up: apps quit gracefully (they can still ask to save), macOS processes and the app Claude runs in are off limits, git work that isn't saved anywhere else is refused, and every chop goes to the Trash with an undo.</p></details>
     <details class="reveal"><summary>Which Macs does it run on?</summary><p>Any Mac on macOS 14 Sonoma or later, Apple silicon or Intel.</p></details>
   </div>
 </section>
@@ -376,6 +458,7 @@ footer .sp{margin-left:auto}
 const nav=document.getElementById('nav');addEventListener('scroll',()=>nav.classList.toggle('solid',scrollY>40),{passive:true});
 const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target)}}),{threshold:.15});
 document.querySelectorAll('.reveal,.window').forEach(el=>io.observe(el));
+document.querySelectorAll('[data-tab]').forEach(t=>t.onclick=()=>{document.querySelectorAll('[data-tab]').forEach(b=>b.setAttribute('aria-selected',b===t));document.querySelectorAll('[data-panel]').forEach(p=>p.hidden=p.dataset.panel!==t.dataset.tab)});
 document.querySelectorAll('[data-copy]').forEach(b=>b.onclick=()=>{navigator.clipboard.writeText(b.dataset.copy);b.textContent='Copied';setTimeout(()=>b.textContent='Copy',1500)});
 </script>
 <!-- PostHog: anonymous pageviews + download clicks. No cookies, no storage, no session replay. -->
