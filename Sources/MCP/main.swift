@@ -456,7 +456,7 @@ func handle(_ msg: [String: Any]) async {
         reply([
             "protocolVersion": version,
             "capabilities": ["tools": ["listChanged": false], "prompts": ["listChanged": false]],
-            "serverInfo": ["name": "timber", "title": "Timber", "version": "1.0.0"],
+            "serverInfo": ["name": "timber", "title": "Timber", "version": "1.1.0"],
             "instructions": instructions,
         ])
     case "ping":

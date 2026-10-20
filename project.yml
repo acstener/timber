@@ -50,6 +50,8 @@ targets:
       path: Sources/App/Info.plist
       properties:
         CFBundleDisplayName: Timber
+        CFBundleShortVersionString: "$(MARKETING_VERSION)"
+        CFBundleVersion: "$(CURRENT_PROJECT_VERSION)"
         LSApplicationCategoryType: public.app-category.utilities
         NSHumanReadableCopyright: "Chop down what you don't need."
         NSDesktopFolderUsageDescription: Timber measures your Desktop so it can show what's taking up space.
