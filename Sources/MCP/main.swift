@@ -21,6 +21,9 @@ Typical flow: disk_overview → find_deadwood (and/or survey for the big picture
 present a short plan to the user with sizes and reasons → only after the user clearly agrees, call chop with the exact paths. \
 Never chop personal files (documents, photos, projects) without explicit approval of each path. \
 Space returns once the user empties the Trash; restore can put things back.
+Timber is also the Mac's engine bay for speed: engine_check reads RAM, memory pressure, swap, CPU, thermals and uptime, lists the \
+heaviest apps and returns OBD-style trouble codes with fixes. startup_items lists what launches at login. quit_apps quits apps \
+(gracefully by default) — only after the user approves the exact apps; it refuses macOS processes and whatever is hosting this Claude session.
 """
 
 // MARK: - Scan cache
@@ -163,7 +166,47 @@ let tools: [[String: Any]] = [
             "properties": ["paths": ["type": "array", "items": ["type": "string"]]],
         ],
     ],
+    [
+        "name": "engine_check",
+        "title": "Engine check (RAM & speed)",
+        "description": "Why is the Mac slow? Samples RAM used, memory pressure, swap, CPU, load, thermals, uptime, battery and disk for about a second; lists the heaviest apps by memory and by CPU (helpers rolled up into their app); and returns OBD-style trouble codes, worst first, each with a suggested fix.",
+        "inputSchema": [
+            "type": "object",
+            "properties": ["limit": ["type": "integer", "description": "How many apps per top list (default 8)."]],
+        ],
+        "annotations": ["readOnlyHint": true],
+    ],
+    [
+        "name": "startup_items",
+        "title": "Startup items",
+        "description": "Launch agents and daemons that start at login or boot (third-party only unless include_apple), with vendor, whether they run at load and are kept alive.",
+        "inputSchema": [
+            "type": "object",
+            "properties": ["include_apple": ["type": "boolean"]],
+        ],
+        "annotations": ["readOnlyHint": true],
+    ],
+    [
+        "name": "quit_apps",
+        "title": "Quit apps",
+        "description": "Quit apps (or stop your own non-app processes) by name as shown in engine_check, to free RAM and CPU. Apps quit gracefully and can ask to save; other processes get SIGTERM. Only call after the user approves these exact names. Refuses macOS processes, other users' processes, and the app hosting this Claude session.",
+        "inputSchema": [
+            "type": "object",
+            "properties": [
+                "names": ["type": "array", "items": ["type": "string"], "description": "App or process names from engine_check (e.g. \"Google Chrome\"), or app bundle paths."],
+                "force": ["type": "boolean", "description": "Force quit / SIGKILL. Unsaved work is lost. Only if the user asks after a normal quit didn't work."],
+            ],
+            "required": ["names"],
+        ],
+        "annotations": ["destructiveHint": true, "idempotentHint": false],
+    ],
 ]
+
+func appSummary(_ a: AppGroup) -> [String: Any] {
+    var d: [String: Any] = ["name": a.name, "memory": Fmt.gb(a.memory), "cpu_percent": Int(a.cpu.rounded()), "processes": a.count]
+    if a.isSystem { d["system"] = true }
+    return d
+}
 
 func callTool(_ name: String, _ args: [String: Any]) async throws -> Any {
     switch name {
@@ -292,12 +335,88 @@ func callTool(_ name: String, _ args: [String: Any]) async throws -> Any {
         }
         return ["results": results]
 
+    case "engine_check":
+        let limit = min(30, max(1, args["limit"] as? Int ?? 8))
+        let t = Engine.read()
+        let codes = Engine.diagnose(t, startup: Engine.startupItems())
+        let topMem = t.apps.sorted { $0.memory > $1.memory }.prefix(limit)
+        let topCPU = t.apps.sorted { $0.cpu > $1.cpu }.prefix(limit)
+        var out: [String: Any] = [
+            "machine": "\(t.chip), \(t.cores) cores, \(Fmt.gb(t.memTotal)) RAM, \(t.os)",
+            "memory": [
+                "used": Fmt.gb(t.memUsed), "total": Fmt.gb(t.memTotal),
+                "pressure_percent": Int((t.pressure * 100).rounded()), "pressure_level": t.pressureLevel,
+                "swap_used": Fmt.gb(t.swapUsed),
+            ] as [String: Any],
+            "cpu_percent": Int((t.cpu * 100).rounded()),
+            "load_average": t.loadAvg.map { (($0 * 100).rounded()) / 100 },
+            "thermal": t.thermalLabel,
+            "uptime": Fmt.duration(t.uptime),
+            "disk_free": Fmt.bytes(t.disk.available),
+            "processes": t.processCount,
+            "top_memory": topMem.map(appSummary),
+            "top_cpu": topCPU.map(appSummary),
+            "trouble_codes": codes.map { c -> [String: Any] in
+                var d: [String: Any] = ["code": c.code, "system": c.system, "severity": c.severity.label, "title": c.title, "detail": c.detail]
+                if let f = c.fix { d["fix"] = f }
+                return d
+            },
+        ]
+        if codes.isEmpty { out["verdict"] = "Engine's running clean. No trouble codes." }
+        if t.lowPower { out["low_power_mode"] = true }
+        if let b = t.battery {
+            var bd: [String: Any] = ["percent": b.percent, "charging": b.charging, "on_ac": b.onAC]
+            if let h = b.health { bd["health_percent"] = Int((h * 100).rounded()) }
+            if let c = b.cycles { bd["cycles"] = c }
+            out["battery"] = bd
+        }
+        return out
+
+    case "startup_items":
+        let all = Engine.startupItems()
+        let items = (args["include_apple"] as? Bool) == true ? all : all.filter { !$0.isApple }
+        return [
+            "count": items.count,
+            "items": items.map { i -> [String: Any] in
+                ["label": i.label, "vendor": i.vendor, "scope": i.scope.rawValue, "run_at_load": i.runAtLoad, "keep_alive": i.keepAlive,
+                 "program": Fmt.tilde(i.program), "plist": Fmt.tilde(i.path)]
+            },
+        ] as [String: Any]
+
+    case "quit_apps":
+        let names = args["names"] as? [String] ?? []
+        guard !names.isEmpty else { throw ChopError.failed("No names given.") }
+        let force = (args["force"] as? Bool) == true
+        let groups = Engine.scanProcesses().groups
+        let hosts = Engine.hostGroupIDs()
+        var results: [[String: Any]] = []
+        var freed: UInt64 = 0
+        for raw in names {
+            let want = Fmt.expand(raw)
+            let matches = groups.filter { $0.id == want || $0.bundlePath == want || $0.name.caseInsensitiveCompare(raw) == .orderedSame }
+            guard !matches.isEmpty else { results.append(["name": raw, "quit": false, "error": "Not running (names come from engine_check)."]); continue }
+            for g in matches {
+                let r = Engine.quit(g, force: force, hosts: hosts)
+                freed += r.memory
+                var d: [String: Any] = ["name": r.name, "quit": r.ok, "message": r.message]
+                if r.ok { d["memory"] = Fmt.gb(r.memory) }
+                results.append(d)
+            }
+        }
+        return ["results": results, "memory_released_approx": Fmt.gb(freed),
+                "note": "Apps may take a few seconds to close, or wait on a save prompt. Run engine_check again to see the effect."] as [String: Any]
+
     default:
         throw ChopError.failed("Unknown tool \(name)")
     }
 }
 
 let prompts: [[String: Any]] = [[
+    "name": "tune_up",
+    "title": "Tune up (speed & RAM)",
+    "description": "Find out why the Mac feels slow and fix it: RAM, CPU, swap, startup items.",
+    "arguments": [[String: Any]](),
+], [
     "name": "clear_space",
     "title": "Clear some space",
     "description": "Walk through the disk with Timber and propose what to chop.",
@@ -313,6 +432,14 @@ func promptText(_ goal: String?) -> String {
     4. Ask which to chop. Only call chop with the paths I approve. Then tell me how much went to the Trash.
     """
 }
+
+let tuneUpText = """
+My Mac feels slow. Use the Timber tools to tune it up.
+1. Call engine_check. Explain the trouble codes in plain words, worst first, with the RAM and CPU numbers that matter.
+2. If startup items are flagged, call startup_items and point out ones I probably don't need.
+3. Propose which apps to quit (idle heavy apps first, never anything I'm clearly using). Ask me before calling quit_apps.
+4. If disk space is low, offer to run find_deadwood too. Afterwards run engine_check again and show me before vs after.
+"""
 
 // MARK: - JSON-RPC loop
 
@@ -339,6 +466,10 @@ func handle(_ msg: [String: Any]) async {
     case "prompts/list":
         reply(["prompts": prompts])
     case "prompts/get":
+        if params["name"] as? String == "tune_up" {
+            reply(["description": "Tune up", "messages": [["role": "user", "content": ["type": "text", "text": tuneUpText]]]])
+            return
+        }
         let goal = (params["arguments"] as? [String: Any])?["goal"] as? String
         reply(["description": "Clear some space", "messages": [["role": "user", "content": ["type": "text", "text": promptText(goal)]]]])
     case "tools/call":

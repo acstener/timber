@@ -32,6 +32,8 @@ claude mcp add timber -s user -- /Applications/Timber.app/Contents/Helpers/timbe
 
 Add `-e TYPESAFE_API_KEY=…` before `--` to give Claude the Ranger too. Then ask: *"Use Timber to find me 20 GB."* Tools: `disk_overview`, `survey`, `find_deadwood`, `ranger`, `chop` (refuses unsaved git work unless you say otherwise), `restore`, plus a `clear_space` prompt.
 
+**Engine bay (RAM & speed).** Ask *"Why is my Mac slow?"* and Claude gets the engine tools ported from Redline: `engine_check` (RAM used, memory pressure, swap, CPU, load, thermals, uptime, battery, the heaviest apps with their helpers rolled up, and OBD-style trouble codes with fixes), `startup_items` (what launches at login), and `quit_apps` (graceful quit by default; refuses macOS processes and whatever app is hosting Claude). There's a `tune_up` prompt too.
+
 ## Build from source
 
 Requires Xcode 16+ and [XcodeGen](https://github.com/yonaskolb/XcodeGen).
